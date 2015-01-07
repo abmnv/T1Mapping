@@ -2,6 +2,7 @@ import os
 import unittest
 from __main__ import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
+import math
 
 #
 # T1Mapping
@@ -50,24 +51,70 @@ class T1MappingWidget(ScriptedLoadableModuleWidget):
     parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
 
     #
-    # input volume selector
+    # input volume1 selector
     #
-    self.inputSelector = slicer.qMRMLNodeComboBox()
-    self.inputSelector.nodeTypes = ( ("vtkMRMLScalarVolumeNode"), "" )
-    self.inputSelector.addAttribute( "vtkMRMLScalarVolumeNode", "LabelMap", 0 )
-    self.inputSelector.selectNodeUponCreation = True
-    self.inputSelector.addEnabled = False
-    self.inputSelector.removeEnabled = False
-    self.inputSelector.noneEnabled = False
-    self.inputSelector.showHidden = False
-    self.inputSelector.showChildNodeTypes = False
-    self.inputSelector.setMRMLScene( slicer.mrmlScene )
-    self.inputSelector.setToolTip( "Pick the input to the algorithm." )
-    parametersFormLayout.addRow("Input Volume: ", self.inputSelector)
+    self.inputSelector1 = slicer.qMRMLNodeComboBox()
+    self.inputSelector1.nodeTypes = ( ("vtkMRMLScalarVolumeNode"), "" )
+    self.inputSelector1.addAttribute( "vtkMRMLScalarVolumeNode", "LabelMap", 0 )
+    self.inputSelector1.selectNodeUponCreation = True
+    self.inputSelector1.addEnabled = False
+    self.inputSelector1.removeEnabled = False
+    self.inputSelector1.noneEnabled = False
+    self.inputSelector1.showHidden = False
+    self.inputSelector1.showChildNodeTypes = False
+    self.inputSelector1.setMRMLScene( slicer.mrmlScene )
+    self.inputSelector1.setToolTip( "Pick the input to the algorithm." )
+    parametersFormLayout.addRow("Input Volume 1: ", self.inputSelector1)
+
+    self.screenshotFlipAngleSliderWidget1 = ctk.ctkSliderWidget()
+    self.screenshotFlipAngleSliderWidget1.singleStep = 1.0
+    self.screenshotFlipAngleSliderWidget1.minimum = 1.0
+    self.screenshotFlipAngleSliderWidget1.maximum = 60.0
+    self.screenshotFlipAngleSliderWidget1.value = 1.0
+    self.screenshotFlipAngleSliderWidget1.setToolTip("Set Flip Angle for the first volume.")
+    parametersFormLayout.addRow("First Volume Flip Angle", self.screenshotFlipAngleSliderWidget1)
+
+    #
+    # input volume2 selector
+    #
+    self.inputSelector2 = slicer.qMRMLNodeComboBox()
+    self.inputSelector2.nodeTypes = ( ("vtkMRMLScalarVolumeNode"), "" )
+    self.inputSelector2.addAttribute( "vtkMRMLScalarVolumeNode", "LabelMap", 0 )
+    self.inputSelector2.selectNodeUponCreation = True
+    self.inputSelector2.addEnabled = False
+    self.inputSelector2.removeEnabled = False
+    self.inputSelector2.noneEnabled = False
+    self.inputSelector2.showHidden = False
+    self.inputSelector2.showChildNodeTypes = False
+    self.inputSelector2.setMRMLScene( slicer.mrmlScene )
+    self.inputSelector2.setToolTip( "Pick the input to the algorithm." )
+    parametersFormLayout.addRow("Input Volume 2: ", self.inputSelector2)
+
+    self.screenshotFlipAngleSliderWidget2 = ctk.ctkSliderWidget()
+    self.screenshotFlipAngleSliderWidget2.singleStep = 1.0
+    self.screenshotFlipAngleSliderWidget2.minimum = 1.0
+    self.screenshotFlipAngleSliderWidget2.maximum = 60.0
+    self.screenshotFlipAngleSliderWidget2.value = 1.0
+    self.screenshotFlipAngleSliderWidget2.setToolTip("Set Flip Angle for the first volume.")
+    parametersFormLayout.addRow("Second Volume Flip Angle", self.screenshotFlipAngleSliderWidget2)
+
+    self.screenshotRepetitionTimeSliderWidget = ctk.ctkSliderWidget()
+    self.screenshotRepetitionTimeSliderWidget.singleStep = 1.0
+    self.screenshotRepetitionTimeSliderWidget.minimum = 1.0
+    self.screenshotRepetitionTimeSliderWidget.maximum = 100.0
+    self.screenshotRepetitionTimeSliderWidget.value = 1.0
+    self.screenshotRepetitionTimeSliderWidget.setToolTip("Set Repetition Time in ms")
+    parametersFormLayout.addRow("Repetition Time", self.screenshotRepetitionTimeSliderWidget)
+
+    self.outputVolumeNameWidget = qt.QLineEdit()
+    #self.outputVolumeName.show()
+    parametersFormLayout.addRow("Output Volume Name", self.outputVolumeNameWidget)
+    #le.text
 
     #
     # output volume selector
     #
+    """
     self.outputSelector = slicer.qMRMLNodeComboBox()
     self.outputSelector.nodeTypes = ( ("vtkMRMLScalarVolumeNode"), "" )
     self.outputSelector.addAttribute( "vtkMRMLScalarVolumeNode", "LabelMap", 0 )
@@ -80,38 +127,28 @@ class T1MappingWidget(ScriptedLoadableModuleWidget):
     self.outputSelector.setMRMLScene( slicer.mrmlScene )
     self.outputSelector.setToolTip( "Pick the output to the algorithm." )
     parametersFormLayout.addRow("Output Volume: ", self.outputSelector)
+    """
 
     #
     # check box to trigger taking screen shots for later use in tutorials
     #
-    self.enableScreenshotsFlagCheckBox = qt.QCheckBox()
-    self.enableScreenshotsFlagCheckBox.checked = 0
-    self.enableScreenshotsFlagCheckBox.setToolTip("If checked, take screen shots for tutorials. Use Save Data to write them to disk.")
-    parametersFormLayout.addRow("Enable Screenshots", self.enableScreenshotsFlagCheckBox)
-
-    #
-    # scale factor for screen shots
-    #
-    self.screenshotScaleFactorSliderWidget = ctk.ctkSliderWidget()
-    self.screenshotScaleFactorSliderWidget.singleStep = 1.0
-    self.screenshotScaleFactorSliderWidget.minimum = 1.0
-    self.screenshotScaleFactorSliderWidget.maximum = 50.0
-    self.screenshotScaleFactorSliderWidget.value = 1.0
-    self.screenshotScaleFactorSliderWidget.setToolTip("Set scale factor for the screen shots.")
-    parametersFormLayout.addRow("Screenshot scale factor", self.screenshotScaleFactorSliderWidget)
+    #self.enableScreenshotsFlagCheckBox = qt.QCheckBox()
+    #self.enableScreenshotsFlagCheckBox.checked = 0
+    #self.enableScreenshotsFlagCheckBox.setToolTip("If checked, take screen shots for tutorials. Use Save Data to write them to disk.")
+    #parametersFormLayout.addRow("Enable Screenshots", self.enableScreenshotsFlagCheckBox)
 
     #
     # Apply Button
     #
     self.applyButton = qt.QPushButton("Apply")
     self.applyButton.toolTip = "Run the algorithm."
-    self.applyButton.enabled = False
+    self.applyButton.enabled = True
     parametersFormLayout.addRow(self.applyButton)
 
     # connections
     self.applyButton.connect('clicked(bool)', self.onApplyButton)
-    self.inputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
-    self.outputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
+    #self.inputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
+    #self.outputSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSelect)
 
     # Add vertical spacer
     self.layout.addStretch(1)
@@ -124,11 +161,15 @@ class T1MappingWidget(ScriptedLoadableModuleWidget):
 
   def onApplyButton(self):
     logic = T1MappingLogic()
-    enableScreenshotsFlag = self.enableScreenshotsFlagCheckBox.checked
-    screenshotScaleFactor = int(self.screenshotScaleFactorSliderWidget.value)
-    print("Run the algorithm")
-    logic.run(self.inputSelector.currentNode(), self.outputSelector.currentNode(), enableScreenshotsFlag,screenshotScaleFactor)
+    #enableScreenshotsFlag = self.enableScreenshotsFlagCheckBox.checked
+    #screenshotScaleFactor = int(self.screenshotScaleFactorSliderWidget.value)
+    
+    #print("Run the algorithm")
+    #inputVolume1 = self.inputSelector1.currentNode()
+    #print inputVolume1.GetName()
 
+    
+    logic.run(self.inputSelector1.currentNode(), self.screenshotFlipAngleSliderWidget1.value, self.inputSelector2.currentNode(), self.screenshotFlipAngleSliderWidget2.value, self.screenshotRepetitionTimeSliderWidget.value, self.outputVolumeNameWidget.text)
 
 #
 # T1MappingLogic
@@ -197,17 +238,82 @@ class T1MappingLogic(ScriptedLoadableModuleLogic):
     annotationLogic = slicer.modules.annotations.logic()
     annotationLogic.CreateSnapShot(name, description, type, self.screenshotScaleFactor, imageData)
 
-  def run(self,inputVolume,outputVolume,enableScreenshots=0,screenshotScaleFactor=1):
+  def run(self, inputVolume1, flipAngle1, inputVolume2, flipAngle2, tr, outputVolumeName):
     """
     Run the actual algorithm
     """
 
-    self.delayDisplay('Running the aglorithm')
+    #print"running the algorithm"
 
-    self.enableScreenshots = enableScreenshots
-    self.screenshotScaleFactor = screenshotScaleFactor
+    if not (inputVolume1 and inputVolume2):
+      print"FATAL ERROR: inputs are not initialized"
+      return
 
-    self.takeScreenshot('T1Mapping-Start','Start',-1)
+    if not outputVolumeName:
+      print"FATAL ERROR: output volume name is not initialized"
+      return
+
+    #print inputVolume1
+    array_vol1 = slicer.util.array(inputVolume1.GetName())
+    #print array_vol1.shape
+
+    array_vol2 = slicer.util.array(inputVolume2.GetName())
+
+    if array_vol1.shape != array_vol2.shape:
+      print "FATAL ERROR: Dimensions of the first and second input volumes are not the same"
+      return
+
+    #output_vol = slicer.util.array(outputVolume.GetName())
+    #print output_vol
+    #print outputVolume
+
+    #reuse the name
+    #name = outputVolume.GetName()
+    #print "output volume name: ", outputVolumeName
+    #nasty hack to reuse outputVolume structure. I basically overwrite the outputVolume node
+    outputVolume = slicer.vtkSlicerVolumesLogic.CloneVolume(slicer.mrmlScene, inputVolume1, outputVolumeName)
+    outputVolumeArray = slicer.util.array(outputVolumeName)
+    #print outputVolumeNewArray.shape
+
+    # convert flip angles to radians
+    #print flipAngle1, flipAngle2
+
+    alpha1 = math.radians(flipAngle1)
+    alpha2 = math.radians(flipAngle2)
+    #print alpha1, alpha2
+    #print "repetition time: ", tr
+
+    for i,val in enumerate(array_vol1.flat):
+
+        x1 = array_vol1.flat[i] / math.tan(alpha1)
+        y1 = array_vol1.flat[i] / math.sin(alpha1)
+
+        x2 = array_vol2.flat[i] / math.tan(alpha2)
+        y2 = array_vol2.flat[i] / math.sin(alpha2)
+
+        e1 = (y2 - y1) / (x2 - x1)# this is slope which is equil to E1
+
+        if math.isnan(e1):
+            e1 = 0
+            t1 = 0
+            #print "WARNING: e1 is nan for pixel ", i, " vol1 value: ", array_vol1.flat[i], " vol2 value: ", array_vol2.flat[i]
+
+        elif e1 <= 0:# when e1 is less than zero it causes underfined number error for log, avoid it by setting t1 to zero
+            e1 = 1.0
+            t1 = 0
+            #print "WARNING: e1 is less than zero for pixel ", i, " vol1 value: ", array_vol1.flat[i], " vol2 value: ", array_vol2.flat[i]
+        else:
+            t1 = -tr/math.log(e1)# this is T1
+        
+        #print x1, y1, x2, y2, e1, t1
+        outputVolumeArray.flat[i] = t1        
+
+        #t1_array.flat[i] = t1
+
+    #self.delayDisplay('Running the aglorithm')
+    #self.enableScreenshots = enableScreenshots
+    #self.screenshotScaleFactor = screenshotScaleFactor
+    #self.takeScreenshot('T1Mapping-Start','Start',-1)
 
     return True
 

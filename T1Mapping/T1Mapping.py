@@ -164,7 +164,7 @@ class T1MappingWidget(ScriptedLoadableModuleWidget):
     #enableScreenshotsFlag = self.enableScreenshotsFlagCheckBox.checked
     #screenshotScaleFactor = int(self.screenshotScaleFactorSliderWidget.value)
     
-    print("Run the algorithm")
+    #print("Run the algorithm")
     #inputVolume1 = self.inputSelector1.currentNode()
     #print inputVolume1.GetName()
 
@@ -243,7 +243,7 @@ class T1MappingLogic(ScriptedLoadableModuleLogic):
     Run the actual algorithm
     """
 
-    print"running the algorithm"
+    #print"running the algorithm"
 
     if not (inputVolume1 and inputVolume2):
       print"FATAL ERROR: inputs are not initialized"
@@ -269,19 +269,21 @@ class T1MappingLogic(ScriptedLoadableModuleLogic):
 
     #reuse the name
     #name = outputVolume.GetName()
-    print "output volume name: ", outputVolumeName
+    #print "output volume name: ", outputVolumeName
     #nasty hack to reuse outputVolume structure. I basically overwrite the outputVolume node
     outputVolume = slicer.vtkSlicerVolumesLogic.CloneVolume(slicer.mrmlScene, inputVolume1, outputVolumeName)
     outputVolumeArray = slicer.util.array(outputVolumeName)
+    #set array to zero
+    outputVolumeArray.flat[...]=0
     #print outputVolumeNewArray.shape
 
     # convert flip angles to radians
-    print flipAngle1, flipAngle2
+    #print flipAngle1, flipAngle2
 
     alpha1 = math.radians(flipAngle1)
     alpha2 = math.radians(flipAngle2)
-    print alpha1, alpha2
-    print "repetition time: ", tr
+    #print alpha1, alpha2
+    #print "repetition time: ", tr
 
     for i,val in enumerate(array_vol1.flat):
 
@@ -311,10 +313,8 @@ class T1MappingLogic(ScriptedLoadableModuleLogic):
         #t1_array.flat[i] = t1
 
     #self.delayDisplay('Running the aglorithm')
-
     #self.enableScreenshots = enableScreenshots
     #self.screenshotScaleFactor = screenshotScaleFactor
-
     #self.takeScreenshot('T1Mapping-Start','Start',-1)
 
     return True
