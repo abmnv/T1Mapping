@@ -106,15 +106,15 @@ class T1MappingWidget(ScriptedLoadableModuleWidget):
     self.screenshotRepetitionTimeSliderWidget.setToolTip("Set Repetition Time in ms")
     parametersFormLayout.addRow("Repetition Time", self.screenshotRepetitionTimeSliderWidget)
 
+    """
     self.outputVolumeNameWidget = qt.QLineEdit()
     #self.outputVolumeName.show()
     parametersFormLayout.addRow("Output Volume Name", self.outputVolumeNameWidget)
     #le.text
-
+    """
     #
     # output volume selector
     #
-    """
     self.outputSelector = slicer.qMRMLNodeComboBox()
     self.outputSelector.nodeTypes = ( ("vtkMRMLScalarVolumeNode"), "" )
     self.outputSelector.addAttribute( "vtkMRMLScalarVolumeNode", "LabelMap", 0 )
@@ -127,7 +127,6 @@ class T1MappingWidget(ScriptedLoadableModuleWidget):
     self.outputSelector.setMRMLScene( slicer.mrmlScene )
     self.outputSelector.setToolTip( "Pick the output to the algorithm." )
     parametersFormLayout.addRow("Output Volume: ", self.outputSelector)
-    """
 
     #
     # check box to trigger taking screen shots for later use in tutorials
@@ -167,9 +166,8 @@ class T1MappingWidget(ScriptedLoadableModuleWidget):
     #print("Run the algorithm")
     #inputVolume1 = self.inputSelector1.currentNode()
     #print inputVolume1.GetName()
-
     
-    logic.run(self.inputSelector1.currentNode(), self.screenshotFlipAngleSliderWidget1.value, self.inputSelector2.currentNode(), self.screenshotFlipAngleSliderWidget2.value, self.screenshotRepetitionTimeSliderWidget.value, self.outputVolumeNameWidget.text)
+    logic.run(self.inputSelector1.currentNode(), self.screenshotFlipAngleSliderWidget1.value, self.inputSelector2.currentNode(), self.screenshotFlipAngleSliderWidget2.value, self.screenshotRepetitionTimeSliderWidget.value, self.outputSelector.currentNode())
 
 #
 # T1MappingLogic
@@ -238,7 +236,7 @@ class T1MappingLogic(ScriptedLoadableModuleLogic):
     annotationLogic = slicer.modules.annotations.logic()
     annotationLogic.CreateSnapShot(name, description, type, self.screenshotScaleFactor, imageData)
 
-  def run(self, inputVolume1, flipAngle1, inputVolume2, flipAngle2, tr, outputVolumeName):
+  def run(self, inputVolume1, flipAngle1, inputVolume2, flipAngle2, tr, outputVolume):
     """
     Run the actual algorithm
     """
@@ -249,7 +247,7 @@ class T1MappingLogic(ScriptedLoadableModuleLogic):
       print"FATAL ERROR: inputs are not initialized"
       return
 
-    if not outputVolumeName:
+    if not outputVolume:
       print"FATAL ERROR: output volume name is not initialized"
       return
 
@@ -271,8 +269,10 @@ class T1MappingLogic(ScriptedLoadableModuleLogic):
     #name = outputVolume.GetName()
     #print "output volume name: ", outputVolumeName
     #nasty hack to reuse outputVolume structure. I basically overwrite the outputVolume node
-    outputVolume = slicer.vtkSlicerVolumesLogic.CloneVolume(slicer.mrmlScene, inputVolume1, outputVolumeName)
-    outputVolumeArray = slicer.util.array(outputVolumeName)
+    print "output volume name: ", outputVolume.GetName()
+    outputVolume = slicer.vtkSlicerVolumesLogic.CloneVolume(slicer.mrmlScene, inputVolume1, outputVolume.GetName())
+    
+    outputVolumeArray = slicer.util.array(outputVolume.GetName())
     #set array to zero
     outputVolumeArray.flat[...]=0
     #print outputVolumeNewArray.shape

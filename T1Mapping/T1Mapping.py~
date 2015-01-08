@@ -273,6 +273,8 @@ class T1MappingLogic(ScriptedLoadableModuleLogic):
     #nasty hack to reuse outputVolume structure. I basically overwrite the outputVolume node
     outputVolume = slicer.vtkSlicerVolumesLogic.CloneVolume(slicer.mrmlScene, inputVolume1, outputVolumeName)
     outputVolumeArray = slicer.util.array(outputVolumeName)
+    #set array to zero
+    outputVolumeArray.flat[...]=0
     #print outputVolumeNewArray.shape
 
     # convert flip angles to radians
