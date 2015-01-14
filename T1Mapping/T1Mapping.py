@@ -2,7 +2,7 @@ import os
 import unittest
 from __main__ import vtk, qt, ctk, slicer
 from slicer.ScriptedLoadableModule import *
-import math
+import math, numpy
 
 #
 # T1Mapping
@@ -269,12 +269,60 @@ class T1MappingLogic(ScriptedLoadableModuleLogic):
     #name = outputVolume.GetName()
     #print "output volume name: ", outputVolumeName
     #nasty hack to reuse outputVolume structure. I basically overwrite the outputVolume node
-    print "output volume name: ", outputVolume.GetName()
-    outputVolume = slicer.vtkSlicerVolumesLogic.CloneVolume(slicer.mrmlScene, inputVolume1, outputVolume.GetName())
-    
+    #print "output volume name: ", outputVolume.GetName()
+    #outputVolume = slicer.vtkSlicerVolumesLogic.CloneVolume(slicer.mrmlScene, inputVolume1, outputVolume.GetName())
+    outputArray = numpy.zeros(array_vol1.shape, dtype=array_vol1.dtype)
+    print outputArray.shape
+
+    #importer = vtk.vtkImageImport()
+    #importer.CopyImportVoidPointer(outputArray, outputArray.nbytes)
+    #importer.SetDataScalarType(inputVolume1.GetImageData().GetScalarType())
+
+    print "scalar type: ", inputVolume1.GetImageData().GetScalarType()
+    #importer.SetDataScalarTypeToUnsignedShort()
+    #setDataType = 'importer.SetDataScalarTypeTo' + outputArray.dtype + '()'
+    #eval(setDataType)
+
+    #importer.SetNumberOfScalarComponents(1)
+    #importer.SetWholeExtent(0, outputArray.shape[2]-1, 0, outputArray.shape[1]-1, 0, outputArray.shape[0]-1)
+    #importer.SetDataExtentToWholeExtent()
+    #importer.Update()
+
+    #set up a new image node and copy the contents of input node
+    newImageData=vtk.vtkImageData() 
+    newImageData.DeepCopy(inputVolume1.GetImageData())
+
+    #tmpData = inputVolume1.GetImageData()
+    #tmpData.DeepCopy(imageData)
+    #outputVolume.SetAndObserveImageData(importer.GetOutput())
+    outputVolume.SetAndObserveImageData(newImageData)
+
+    ras2ijk=vtk.vtkMatrix4x4() 
+    ijk2ras=vtk.vtkMatrix4x4()
+    inputVolume1.GetRASToIJKMatrix(ras2ijk) 
+    inputVolume1.GetIJKToRASMatrix(ijk2ras)
+    outputVolume.SetRASToIJKMatrix(ras2ijk)
+    outputVolume.SetIJKToRASMatrix(ijk2ras)
+
+    #volumeDisplayNode = slicer.vtkMRMLScalarVolumeDisplayNode()
+    #slicer.mrmlScene.AddNode(volumeDisplayNode)
+    #greyColorTable = slicer.util.getNode('Grey')
+    #volumeDisplayNode.SetAndObserveColorNodeID(greyColorTable.GetID())
+    #outputVolume.SetAndObserveDisplayNodeID(volumeDisplayNode.GetID())
+
+    selectionNode = slicer.app.applicationLogic().GetSelectionNode()
+    selectionNode.SetReferenceActiveVolumeID(outputVolume.GetID())
+    slicer.app.applicationLogic().PropagateVolumeSelection(0)
+
     outputVolumeArray = slicer.util.array(outputVolume.GetName())
+
+    #numpy.set_printoptions(threshold=numpy.nan)
+    #print outputVolumeArray
+
+    #return True
+
     #set array to zero
-    outputVolumeArray.flat[...]=0
+    #outputVolumeArray.flat[...]=0
     #print outputVolumeNewArray.shape
 
     # convert flip angles to radians
@@ -316,6 +364,8 @@ class T1MappingLogic(ScriptedLoadableModuleLogic):
     #self.enableScreenshots = enableScreenshots
     #self.screenshotScaleFactor = screenshotScaleFactor
     #self.takeScreenshot('T1Mapping-Start','Start',-1)
+
+    print outputVolumeArray
 
     return True
 
